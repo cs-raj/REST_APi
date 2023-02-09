@@ -3,7 +3,7 @@ const { create } = require("domain");
 const User = require("../model/user.model");
 const sendResponse = require("../helper/sendResponse");
 const sendErrorResponse = require("../helper/sendErrorResponse");
-const AppError = require('../helper/AppError');
+const AppError = require("../helper/AppError");
 const fs = require("fs"); // Used to Overwrite to a file
 // This is the middleware that is just a function
 // It will have access to req, res and next
@@ -13,12 +13,21 @@ const validateUser = (req, res, next) => {
 
   const result = keys.every((key) => Object.keys(req.body).includes(key));
   if (!result) {
-    return sendErrorResponse(new AppError({message: "Keys are not valid", data: { ...req.body },statusCode:422}),req,res);
+    return sendErrorResponse(
+      new AppError({
+        message: "Keys are not valid",
+        data: { ...req.body },
+        statusCode: 422,
+      }),
+      req,
+      res
+    );
   }
   next();
 };
 
 const getAllUsers = (req, res) => {
+  const Users = JSON.parse([fs.readFileSync("./data/users.json", "utf8")]);
   sendResponse(req, res, {
     message: "Data fetched successfully",
     data: [...Users],
@@ -35,7 +44,11 @@ const getUserById = (req, res) => {
       statusCode: 200,
     });
   } else {
-    sendErrorResponse(new AppError({ message: "User Not Found", data: { },statusCode:400}),req,res);
+    sendErrorResponse(
+      new AppError({ message: "User Not Found", data: {}, statusCode: 400 }),
+      req,
+      res
+    );
   }
 };
 
@@ -68,10 +81,11 @@ const updateUser = (req, res) => {
     const updateObject = req.body;
     console.log(req.body);
     const objectToUpdate = Users.find((obj) => obj.id == req.params.id);
-    for(let i = 0;i<Object.keys(updateObject).length;i++){
-      objectToUpdate[Object.keys(updateObject)[i]] = Object.values(updateObject)[i]; //Working on the copy of the object
+    for (let i = 0; i < Object.keys(updateObject).length; i++) {
+      objectToUpdate[Object.keys(updateObject)[i]] =
+        Object.values(updateObject)[i]; //Working on the copy of the object
     }
-  
+
     try {
       fs.writeFileSync("./data/users.json", JSON.stringify(Users));
       console.log("Data Updated Successfully");
@@ -84,31 +98,38 @@ const updateUser = (req, res) => {
       statusCode: 200,
     });
   } else {
-    sendErrorResponse(new AppError({ message: "User Not Found", data: { },statusCode:400}),req,res);
+    sendErrorResponse(
+      new AppError({ message: "User Not Found", data: {}, statusCode: 422 }),
+      req,
+      res
+    );
   }
-  
 };
 
 const deleteUser = (req, res) => {
   const Users = JSON.parse([fs.readFileSync("./data/users.json", "utf8")]);
-
+  console.log(toString(req.params.id));
   const index = Users.findIndex((ele) => ele.id === req.params.id);
   console.log(index);
   if (index !== -1) {
     Users.splice(index, 1);
     try {
-        fs.writeFileSync("./data/users.json", JSON.stringify(Users));
-        console.log("Data Deleted Successfully");
-      } catch (err) {
-        console.error(err);
-      }
+      fs.writeFileSync("./data/users.json", JSON.stringify(Users));
+      console.log("Data Deleted Successfully");
+    } catch (err) {
+      console.error(err);
+    }
     sendResponse(req, res, {
       message: "User Deleted Successfully",
       data: [...Users],
       statusCode: 200,
     });
   } else {
-    sendErrorResponse(new AppError({ message: "User Not Found", data: { },statusCode:400}),req,res);
+    sendErrorResponse(
+      new AppError({ message: "User Not Found", data: {}, statusCode: 422 }),
+      req,
+      res
+    );
   }
 };
 
