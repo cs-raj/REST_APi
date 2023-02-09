@@ -1,6 +1,5 @@
 // this will contain business logic
 const { create } = require("domain");
-// const Users = require('../data/users.json');
 const User = require("../model/user.model");
 const sendResponse = require("../helper/sendResponse");
 const sendErrorResponse = require("../helper/sendErrorResponse");
@@ -36,10 +35,7 @@ const getUserById = (req, res) => {
       statusCode: 200,
     });
   } else {
-    res.status(400).json({
-      message: "User Not Found",
-      data: "",
-    });
+    sendErrorResponse(new AppError({ message: "User Not Found", data: { },statusCode:400}),req,res);
   }
 };
 
@@ -66,22 +62,31 @@ const createUser = (req, res) => {
 };
 
 const updateUser = (req, res) => {
-  const Users = JSON.parse([fs.readFileSync("./data/users.json", "utf8")]);
-  const updateObject = req.body;
-  console.log(req.body);
-  const objectToUpdate = Users.find((obj) => obj.id == req.params.id);
-  objectToUpdate[Object.keys(updateObject)[0]] = Object.values(updateObject)[0]; //Working on the copy of the object
-  try {
-    fs.writeFileSync("./data/users.json", JSON.stringify(Users));
-    console.log("Data Updated Successfully");
-  } catch (err) {
-    console.error(err);
+  const user = Users.find((ele) => ele.id === req.params.id);
+  if (user) {
+    const Users = JSON.parse([fs.readFileSync("./data/users.json", "utf8")]);
+    const updateObject = req.body;
+    console.log(req.body);
+    const objectToUpdate = Users.find((obj) => obj.id == req.params.id);
+    for(let i = 0;i<Object.keys(updateObject).length;i++){
+      objectToUpdate[Object.keys(updateObject)[i]] = Object.values(updateObject)[i]; //Working on the copy of the object
+    }
+  
+    try {
+      fs.writeFileSync("./data/users.json", JSON.stringify(Users));
+      console.log("Data Updated Successfully");
+    } catch (err) {
+      console.error(err);
+    }
+    sendResponse(req, res, {
+      message: "User Updated sucessfully",
+      data: [Users],
+      statusCode: 200,
+    });
+  } else {
+    sendErrorResponse(new AppError({ message: "User Not Found", data: { },statusCode:400}),req,res);
   }
-  sendResponse(req, res, {
-    message: "User Updated sucessfully",
-    data: [Users],
-    statusCode: 200,
-  });
+  
 };
 
 const deleteUser = (req, res) => {
@@ -103,10 +108,7 @@ const deleteUser = (req, res) => {
       statusCode: 200,
     });
   } else {
-    res.status(400).json({
-      message: "User Not Found",
-      data: "",
-    });
+    sendErrorResponse(new AppError({ message: "User Not Found", data: { },statusCode:400}),req,res);
   }
 };
 
